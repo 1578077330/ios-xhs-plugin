@@ -1,0 +1,71 @@
+name: Build XHSPlugin
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Cache Theos
+      id: cache-theos
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/theos
+          ~/Library/Developer/Xcode/DerivedData
+        key: ${{ runner.os }}-theos-v1
+
+    - name: Install Homebrew dependencies
+      run: |
+        brew install ldid xz
+
+    - name: Install Theos
+      if: steps.cache-theos.outputs.cache-hit != 'true'
+      run: |
+        bash -c "$(curl -fsSL https://raw.githubusercontent.com/theos/theos/master/bin/install-theos)"
+
+    - name: Build package
+      env:
+        THEOS: ${{ github.workspace }}/theos
+      run: |
+        export THEOS=~/theos
+        export PATH=$THEOS/bin:$PATH
+        make clean
+        make package
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: XHSPlugin
+        path: |
+          packages/*.deb
+          **/*.dylib
+          **/*.plist
+
+    - name: Extract dylib
+      run: |
+        mkdir -p output
+        if [ -d "packages" ]; then
+          for deb in packages/*.deb; do
+            dpkg -x "$deb" extracted
+          done
+          if [ -f "extracted/Library/MobileSubstrate/DynamicLibraries/XHSPlugin.dylib" ]; then
+            cp extracted/Library/MobileSubstrate/DynamicLibraries/XHSPlugin.dylib output/
+            cp extracted/Library/MobileSubstrate/DynamicLibraries/XHSPlugin.plist output/
+          fi
+        fi
+
+    - name: Upload dylib
+      uses: actions/upload-artifact@v4
+      with:
+        name: XHSPlugin-dylib
+        path: output/
