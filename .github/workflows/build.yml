@@ -9,59 +9,44 @@ on:
 
 jobs:
   build:
-    runs-on: macos-latest
+    runs-on: macos-13
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Cache Theos
-      id: cache-theos
-      uses: actions/cache@v4
-      with:
-        path: |
-          ~/theos
-          ~/Library/Developer/Xcode/DerivedData
-        key: ${{ runner.os }}-theos-v1
-
-    - name: Install Homebrew dependencies
+    - name: Install dependencies
       run: |
-        brew install ldid xz
+        brew install ldid
 
     - name: Install Theos
-      if: steps.cache-theos.outputs.cache-hit != 'true'
       run: |
         bash -c "$(curl -fsSL https://raw.githubusercontent.com/theos/theos/master/bin/install-theos)"
+        echo "THEOS=$HOME/theos" >> $GITHUB_ENV
+        echo "$HOME/theos/bin" >> $GITHUB_PATH
 
-    - name: Build package
-      env:
-        THEOS: ${{ github.workspace }}/theos
+    - name: Build
       run: |
-        export THEOS=~/theos
+        export THEOS=$HOME/theos
         export PATH=$THEOS/bin:$PATH
         make clean
         make package
 
-    - name: Upload artifacts
+    - name: Upload deb
       uses: actions/upload-artifact@v4
       with:
-        name: XHSPlugin
-        path: |
-          packages/*.deb
-          **/*.dylib
-          **/*.plist
+        name: XHSPlugin-deb
+        path: packages/*.deb
 
-    - name: Extract dylib
+    - name: Extract and upload dylib
       run: |
         mkdir -p output
-        if [ -d "packages" ]; then
-          for deb in packages/*.deb; do
-            dpkg -x "$deb" extracted
-          done
-          if [ -f "extracted/Library/MobileSubstrate/DynamicLibraries/XHSPlugin.dylib" ]; then
-            cp extracted/Library/MobileSubstrate/DynamicLibraries/XHSPlugin.dylib output/
-            cp extracted/Library/MobileSubstrate/DynamicLibraries/XHSPlugin.plist output/
-          fi
+        for deb in packages/*.deb; do
+          dpkg -x "$deb" extracted
+        done
+        if [ -f "extracted/Library/MobileSubstrate/DynamicLibraries/XHSPlugin.dylib" ]; then
+          cp extracted/Library/MobileSubstrate/DynamicLibraries/XHSPlugin.dylib output/
+          cp extracted/Library/MobileSubstrate/DynamicLibraries/XHSPlugin.plist output/
         fi
 
     - name: Upload dylib
