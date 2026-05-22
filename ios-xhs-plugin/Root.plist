@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>items</key>
+	<array>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>XHSPlugin</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSButtonCell</string>
+			<key>label</key>
+			<string>清理 Keychain</string>
+			<key>action</key>
+			<string>cleanKeychain:</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSButtonCell</string>
+			<key>label</key>
+			<string>完整清理并重置</string>
+			<key>action</key>
+			<string>fullReset:</string>
+			<key>destructive</key>
+			<true/>
+		</dict>
+	</array>
+	<key>title</key>
+	<string>XHSPlugin</string>
+</dict>
+</plist>

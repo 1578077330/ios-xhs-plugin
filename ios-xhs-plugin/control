@@ -1,0 +1,9 @@
+Package: com.yourname.xhsplugin
+Name: XHSPlugin
+Depends: mobilesubstrate
+Version: 1.0.0
+Architecture: iphoneos-arm
+Description: Xiaohongshu Keychain Cleaner and Identifier Changer
+Maintainer: Your Name
+Author: Your Name
+Section: Tweaks
